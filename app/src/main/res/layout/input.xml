@@ -18,7 +18,7 @@
 */
 -->
 
-<com.demo.bobble.keyboard.example.android.softkeyboard.LatinKeyboardView
+<com.demo.bobble.keyboard.softkeyboard.LatinKeyboardView
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/keyboard"
         android:layout_alignParentBottom="true"

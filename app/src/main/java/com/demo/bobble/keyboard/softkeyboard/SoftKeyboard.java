@@ -1,4 +1,4 @@
-package com.demo.bobble.keyboard.example.android.softkeyboard;/*
+package com.demo.bobble.keyboard.softkeyboard;/*
  * Copyright (C) 2008-2009 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");

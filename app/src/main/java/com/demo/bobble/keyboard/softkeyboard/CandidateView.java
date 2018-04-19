@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.demo.bobble.keyboard.example.android.softkeyboard;
+package com.demo.bobble.keyboard.softkeyboard;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -85,7 +85,7 @@ public class CandidateView extends View {
 
         Resources r = context.getResources();
         
-        setBackgroundColor(r.getColor(R.color.candidate_background));
+        setBackgroundColor(r.getColor(R.color.candidate_other));
         
         mColorNormal = r.getColor(R.color.candidate_normal);
         mColorRecommended = r.getColor(R.color.candidate_recommended);

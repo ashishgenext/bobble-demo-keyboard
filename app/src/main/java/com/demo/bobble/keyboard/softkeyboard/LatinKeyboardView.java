@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.demo.bobble.keyboard.example.android.softkeyboard;
+package com.demo.bobble.keyboard.softkeyboard;
 
 import android.content.Context;
 import android.inputmethodservice.Keyboard;

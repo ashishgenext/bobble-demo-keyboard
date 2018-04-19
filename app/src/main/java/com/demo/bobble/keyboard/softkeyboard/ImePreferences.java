@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.demo.bobble.keyboard.example.android.softkeyboard;
+package com.demo.bobble.keyboard.softkeyboard;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 
 import com.demo.bobble.keyboard.R;
-import com.demo.bobble.keyboard.android.inputmethodcommon.InputMethodSettingsFragment;
+import com.demo.bobble.keyboard.common.InputMethodSettingsFragment;
 
 /**
  * Displays the IME preferences inside the input method setting.

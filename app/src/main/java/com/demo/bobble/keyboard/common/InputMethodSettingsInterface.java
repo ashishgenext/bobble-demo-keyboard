@@ -20,7 +20,7 @@
  * Project.
  */
 
-package com.demo.bobble.keyboard.android.inputmethodcommon;
+package com.demo.bobble.keyboard.common;
 
 import android.graphics.drawable.Drawable;
 

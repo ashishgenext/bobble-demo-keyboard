@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.demo.bobble.keyboard">
 
@@ -7,21 +8,43 @@
         android:label="@string/ime_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme" >
-
-        <service android:name=".example.android.softkeyboard.SoftKeyboard"
+        android:theme="@style/AppTheme">
+        <service
+            android:name=".softkeyboard.SoftKeyboard"
             android:permission="android.permission.BIND_INPUT_METHOD">
             <intent-filter>
                 <action android:name="android.view.InputMethod" />
             </intent-filter>
-            <meta-data android:name="android.view.im" android:resource="@xml/method" />
+
+            <meta-data
+                android:name="android.view.im"
+                android:resource="@xml/method" />
         </service>
 
-        <activity android:name=".example.android.softkeyboard.ImePreferences" android:label="@string/settings_name">
+        <activity
+            android:name=".softkeyboard.ImePreferences"
+            android:label="@string/settings_name">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".softkeyboard.MainActivity"
+            android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+        <provider
+            android:name=".database.KBContentProvider"
+            android:authorities="com.demo.bobble.keyboard.database.KBContentProvider"
+            android:exported="false"
+            android:multiprocess="true" />
+
     </application>
+
 </manifest>

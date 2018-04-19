@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "1011945953426",
+    "firebase_url": "https://fir-bobble-keyboard.firebaseio.com",
+    "project_id": "fir-bobble-keyboard",
+    "storage_bucket": "fir-bobble-keyboard.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1011945953426:android:84f9ef3a8aca3d0d",
+        "android_client_info": {
+          "package_name": "com.demo.bobble.keyboard"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1011945953426-93f0h36q43qsa9cviabe6sa35hgtn1bl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.demo.bobble.keyboard",
+            "certificate_hash": "82e12d5892aa42b43ed0808c724b6caadb383439"
+          }
+        },
+        {
+          "client_id": "1011945953426-5iek7kspus22qt5476p2asafo0ff53ih.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBXk--OCmvD8OR0L7VwZEPwuqzgQdEOjIE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1011945953426-5iek7kspus22qt5476p2asafo0ff53ih.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

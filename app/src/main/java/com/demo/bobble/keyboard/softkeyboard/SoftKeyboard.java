@@ -15,6 +15,7 @@ package com.demo.bobble.keyboard.softkeyboard;/*
  */
 
 import android.app.Dialog;
+import android.database.Cursor;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
@@ -32,6 +33,8 @@ import android.view.inputmethod.InputMethodManager;
 import android.view.inputmethod.InputMethodSubtype;
 
 import com.demo.bobble.keyboard.R;
+import com.demo.bobble.keyboard.database.DataProvider;
+import com.demo.bobble.keyboard.database.KeywordsUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,6 +81,10 @@ public class SoftKeyboard extends InputMethodService
     private LatinKeyboard mCurKeyboard;
     
     private String mWordSeparators;
+    private KeywordsUtil mKeyWordsUtil;
+    private ArrayList<String> mSuggestList = new ArrayList<>();
+    private ArrayList<String> mCompletionSuggestList = new ArrayList<>();
+    boolean isCompletionList = false;
     
     /**
      * Main initialization of the input method component.  Be sure to call
@@ -86,6 +93,7 @@ public class SoftKeyboard extends InputMethodService
     @Override public void onCreate() {
         super.onCreate();
         mInputMethodManager = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+        mKeyWordsUtil = new KeywordsUtil(SoftKeyboard.this);
         mWordSeparators = getResources().getString(R.string.word_separators);
     }
     
@@ -118,6 +126,7 @@ public class SoftKeyboard extends InputMethodService
                 R.layout.input, null);
         mInputView.setOnKeyboardActionListener(this);
         setLatinKeyboard(mQwertyKeyboard);
+
         return mInputView;
     }
 
@@ -251,6 +260,8 @@ public class SoftKeyboard extends InputMethodService
         mCurKeyboard = mQwertyKeyboard;
         if (mInputView != null) {
             mInputView.closing();
+//            if (mCandidateView != null)
+//                mCandidateView.setVisibility(View.GONE);
         }
     }
     
@@ -258,9 +269,14 @@ public class SoftKeyboard extends InputMethodService
         super.onStartInputView(attribute, restarting);
         // Apply the selected keyboard to the input view.
         setLatinKeyboard(mCurKeyboard);
+//        if(mCandidateView.getVisibility() == View.GONE){
+//            mCandidateView.setVisibility(View.VISIBLE);
+//        }
         mInputView.closing();
         final InputMethodSubtype subtype = mInputMethodManager.getCurrentInputMethodSubtype();
         mInputView.setSubtypeOnSpaceKey(subtype);
+        getCompletionSuggestMainList(true);
+        setSuggestions(mCompletionSuggestList,true,true);
     }
 
     @Override
@@ -299,18 +315,54 @@ public class SoftKeyboard extends InputMethodService
     @Override public void onDisplayCompletions(CompletionInfo[] completions) {
         if (mCompletionOn) {
             mCompletions = completions;
+
             if (completions == null) {
                 setSuggestions(null, false, false);
                 return;
             }
             
-            List<String> stringList = new ArrayList<String>();
-            for (int i = 0; i < completions.length; i++) {
-                CompletionInfo ci = completions[i];
-                if (ci != null) stringList.add(ci.getText().toString());
-            }
-            setSuggestions(stringList, true, true);
+            List<String> suggestions = new ArrayList<String>();
+//            for (int i = 0; i < completions.length; i++) {
+//                CompletionInfo ci = completions[i];
+//                if (ci != null) stringList.add(ci.getText().toString());
+//            }
+           // suggestions = getCompletionSuggestMainList();
+            setSuggestions(suggestions, true, true);
         }
+    }
+
+    private ArrayList<String> getCompletionSuggestMainList(boolean fromMaster) {
+        isCompletionList = true;
+        mCompletionSuggestList.clear();
+        Cursor cursor;
+        if(fromMaster) {
+            cursor = mKeyWordsUtil.getTopWordsFromDB();
+        }else {
+            cursor = mKeyWordsUtil.getTopWordsFromSuggestDB();
+        }
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    mCompletionSuggestList.add(cursor.getString(cursor.getColumnIndex(DataProvider.EnglishSuggest.KEYWORD)));
+                } while (cursor.moveToNext());
+            }
+        }
+        return mCompletionSuggestList;
+    }
+
+
+    private ArrayList<String> getMatchedSuggestList(String word ) {
+        Cursor cursor;
+        cursor = mKeyWordsUtil.getMatchingWordsFromMasterDB(word);
+        mSuggestList.clear();
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                do {
+                    mSuggestList.add(cursor.getString(cursor.getColumnIndex(DataProvider.EnglishSuggest.KEYWORD)));
+                } while (cursor.moveToNext());
+            }
+        }
+        return mSuggestList;
     }
     
     /**
@@ -508,7 +560,11 @@ public class SoftKeyboard extends InputMethodService
         if (isWordSeparator(primaryCode)) {
             // Handle separator
             if (mComposing.length() > 0) {
+                mKeyWordsUtil.insertOrUpdateKeywordsInDB(mComposing.toString());
                 commitTyped(getCurrentInputConnection());
+
+                getCompletionSuggestMainList(true);
+                setSuggestions(mCompletionSuggestList,true,true);
             }
             sendKey(primaryCode);
             updateShiftKeyState(getCurrentInputEditorInfo());
@@ -558,9 +614,9 @@ public class SoftKeyboard extends InputMethodService
     private void updateCandidates() {
         if (!mCompletionOn) {
             if (mComposing.length() > 0) {
-                ArrayList<String> list = new ArrayList<String>();
-                list.add(mComposing.toString());
-                setSuggestions(list, true, true);
+                // suggestList.add(mComposing.toString());
+                ArrayList<String> suggestList = getMatchedSuggestList(mComposing.toString());
+                setSuggestions(suggestList, true, true);
             } else {
                 setSuggestions(null, false, false);
             }
@@ -569,6 +625,7 @@ public class SoftKeyboard extends InputMethodService
     
     public void setSuggestions(List<String> suggestions, boolean completions,
             boolean typedWordValid) {
+
         if (suggestions != null && suggestions.size() > 0) {
             setCandidatesViewShown(true);
         } else if (isExtractViewShown()) {
@@ -636,6 +693,8 @@ public class SoftKeyboard extends InputMethodService
     private void handleClose() {
         commitTyped(getCurrentInputConnection());
         requestHideSelf(0);
+        mCandidateView.clear();
+      //  mCandidateView.setVisibility(View.GONE);
         mInputView.closing();
     }
 
@@ -691,7 +750,26 @@ public class SoftKeyboard extends InputMethodService
             // If we were generating candidate suggestions for the current
             // text, we would commit one of them here.  But for this sample,
             // we will just commit the current text.
+            if(mSuggestList != null){
+                mComposing.replace(0,mComposing.length(),mSuggestList.get(index)+" ");
+            }
+            mKeyWordsUtil.insertOrUpdateKeywordsInDB(mSuggestList.get(index));
             commitTyped(getCurrentInputConnection());
+
+            getCompletionSuggestMainList(false);
+            setSuggestions(mCompletionSuggestList,true,true);
+        }else if (isCompletionList) {
+            if (mCompletionSuggestList != null) {
+                mComposing.replace(0, mComposing.length(), mCompletionSuggestList.get(index) + " ");
+
+                mKeyWordsUtil.insertOrUpdateKeywordsInDB(mSuggestList.get(index));
+                commitTyped(getCurrentInputConnection());
+                isCompletionList = false;
+                mCompletionSuggestList.clear();
+
+                getCompletionSuggestMainList(false);
+                setSuggestions(mCompletionSuggestList,true,true);
+            }
         }
     }
     
@@ -717,4 +795,5 @@ public class SoftKeyboard extends InputMethodService
     
     public void onRelease(int primaryCode) {
     }
+
 }

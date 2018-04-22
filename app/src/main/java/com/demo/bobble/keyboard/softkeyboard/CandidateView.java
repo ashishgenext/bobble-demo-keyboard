@@ -28,6 +28,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.demo.bobble.keyboard.R;
+import com.demo.bobble.keyboard.utility.CommonUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,7 +86,7 @@ public class CandidateView extends View {
 
         Resources r = context.getResources();
         
-        setBackgroundColor(r.getColor(R.color.candidate_other));
+        setBackgroundColor(r.getColor(R.color.colorPrimaryDark));
         
         mColorNormal = r.getColor(R.color.candidate_normal);
         mColorRecommended = r.getColor(R.color.candidate_recommended);
@@ -122,7 +123,8 @@ public class CandidateView extends View {
         setHorizontalScrollBarEnabled(false);
         setVerticalScrollBarEnabled(false);
     }
-    
+
+
     /**
      * A connection back to the service to communicate with the text field
      * @param listener
@@ -145,7 +147,7 @@ public class CandidateView extends View {
         Rect padding = new Rect();
         mSelectionHighlight.getPadding(padding);
         final int desiredHeight = ((int)mPaint.getTextSize()) + mVerticalPadding
-                + padding.top + padding.bottom;
+                + padding.top + padding.bottom + 20;
         
         // Maximum possible width and desired height
         setMeasuredDimension(measuredWidth,
@@ -184,8 +186,10 @@ public class CandidateView extends View {
         for (int i = 0; i < count; i++) {
             String suggestion = mSuggestions.get(i);
             float textWidth = paint.measureText(suggestion);
-            final int wordWidth = (int) textWidth + X_GAP * 2;
-
+            int wordWidth = (int) textWidth + X_GAP * 2;
+            if(wordWidth < getWidth()/ CommonUtils.nDbSearchLimit){
+                wordWidth = getWidth()/CommonUtils.nDbSearchLimit ;
+            }
             mWordX[i] = x;
             mWordWidth[i] = wordWidth;
             paint.setColor(mColorNormal);
@@ -206,7 +210,8 @@ public class CandidateView extends View {
                 } else if (i != 0) {
                     paint.setColor(mColorOther);
                 }
-                canvas.drawText(suggestion, x + X_GAP, y, paint);
+                int textLocation = (wordWidth - (int) textWidth)/2 ;
+                canvas.drawText(suggestion, x + textLocation, y, paint);
                 paint.setColor(mColorOther); 
                 canvas.drawLine(x + wordWidth + 0.5f, bgPadding.top, 
                         x + wordWidth + 0.5f, height + 1, paint);

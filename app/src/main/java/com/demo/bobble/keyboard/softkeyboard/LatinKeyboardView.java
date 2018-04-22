@@ -52,4 +52,9 @@ public class LatinKeyboardView extends KeyboardView {
         keyboard.setSpaceIcon(getResources().getDrawable(subtype.getIconResId()));
         invalidateAllKeys();
     }
+
+    @Override
+    public void closing() {
+        super.closing();
+    }
 }

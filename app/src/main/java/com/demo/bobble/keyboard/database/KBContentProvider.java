@@ -3,22 +3,36 @@ package com.demo.bobble.keyboard.database;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.UriMatcher;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 
+import com.demo.bobble.keyboard.R;
+import com.demo.bobble.keyboard.utility.CommonUtils;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 
 public class KBContentProvider extends ContentProvider {
 
-    private SQLiteOpenHelper mOpenHelper;
+    private static SQLiteOpenHelper mOpenHelper;
 
     private static HashMap<String, String> englishMasterProjectionMap;
     private static HashMap<String, String> englishSuggestProjectionMap;
@@ -64,11 +78,130 @@ public class KBContentProvider extends ContentProvider {
                 DataProvider.EnglishSuggest.OTHER);
     }
 
+    private static class DBHelper extends SQLiteOpenHelper {
+        private static final int DATABASE_VERSION = 1;
+        private static final String TAG = "KBContentProvider";
+        private static final String DATABASE_PATH = Environment.getExternalStorageDirectory().getPath()+"/demoBobble/";
+        private static final String DATABASE_NAME = "demobobble.db";
+
+        public static final String KB_ENGLISH_MASTER_TABLE_NAME = "english_master";
+        public static final String KB_ENGLISH_SUGGEST_TABLE_NAME = "english_suggest";
+        Context mHelperContext;
+        public static Context applicationContext;
+        private SQLiteDatabase db ;
+
+        DBHelper(Context argContext) {
+            super(argContext, DATABASE_PATH + DATABASE_NAME, null,
+                    DATABASE_VERSION);
+            mHelperContext = argContext;
+            applicationContext = mHelperContext;
+
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase sqLiteDatabase) {
+            Log.w(TAG, "C R E A T I N G   D A T A B A S E   ");
+
+            String table = "CREATE TABLE IF NOT EXISTS " + KB_ENGLISH_MASTER_TABLE_NAME
+                    + " (";
+            table += DataProvider.EnglishMaster.ID
+                    + "  INTEGER PRIMARY KEY AUTOINCREMENT,";
+            table += DataProvider.EnglishMaster.KEYWORD + " varchar,";
+            table += DataProvider.EnglishMaster.COUNT + " int,";
+            table += DataProvider.EnglishMaster.OTHER + " varchar";
+            table += " );";
+            sqLiteDatabase.execSQL(table);
+
+            table = "CREATE TABLE IF NOT EXISTS " + KB_ENGLISH_SUGGEST_TABLE_NAME
+                    + " (";
+            table += DataProvider.EnglishSuggest.ID
+                    + "  INTEGER PRIMARY KEY AUTOINCREMENT,";
+            table += DataProvider.EnglishSuggest.KEYWORD + " varchar,";
+            table += DataProvider.EnglishSuggest.COUNT + " int,";
+            table += DataProvider.EnglishSuggest.OTHER + " varchar";
+            table += " );";
+            sqLiteDatabase.execSQL(table);
+
+            loadMasterDictionary();
+        }
+
+        @Override
+        public void onOpen(SQLiteDatabase argDB) {
+        }
+
+        // do need to change this method when the user is doing an upgrade.
+        @Override
+        public void onUpgrade(SQLiteDatabase argDB, int argOldVersion, int argNewVersion) {
+            onCreate(argDB);
+        }
+
+        /**
+         * Starts a thread to load the database table with words
+         */
+        private void loadMasterDictionary() {
+            new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        loadWords();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }).start();
+        }
+
+        private void loadWords() throws IOException {
+            Log.d(TAG, "Loading words...");
+            File file = new File(CommonUtils.folderPath  + CommonUtils.TEXT_FILE_NAME);
+            if (file.exists()) {
+                InputStream inputStream = new FileInputStream(file);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(
+                        inputStream));
+
+                try {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        String[] strings = TextUtils.split(line, " ");
+                        addWord(strings[0], Long.parseLong(strings[1]));
+                    }
+                } finally {
+                    reader.close();
+                    SharedPreferences pref = applicationContext.getSharedPreferences("shared_pref", 0);
+                    SharedPreferences.Editor editor = pref.edit();
+                    editor.putBoolean("text_file", true);
+                    editor.apply();
+                }
+                Log.d(TAG, "DONE loading words.");
+            }
+        }
+
+        /**
+         * Add a word to the dictionary.
+         *
+         * @return rowId or -1 if failed
+         */
+        public void addWord(String word ,long count) {
+            ContentValues initialValues = new ContentValues();
+            initialValues.put(DataProvider.EnglishMaster.KEYWORD, word);
+            initialValues.put(DataProvider.EnglishMaster.COUNT, count);
+            Log.d(TAG, "**addWORD**");
+            applicationContext.getContentResolver().insert(
+                    DataProvider.EnglishMaster.CONTENT_URI, initialValues);
+        }
+    }
+
+
 
     @Override
     public boolean onCreate() {
         mOpenHelper = new DBHelper(getContext());
         return true;
+    }
+
+    public void init(){
+        if(mOpenHelper != null) {
+            SQLiteDatabase db = mOpenHelper.getReadableDatabase();
+        }
     }
 
     @Nullable
@@ -201,8 +334,7 @@ public class KBContentProvider extends ContentProvider {
             case ENGLISH_MASTER_ID:
                 String rowId = uri.getPathSegments().get(1);
                 selection = DataProvider.EnglishMaster.ID + "=" + rowId;
-                Log.w("KBJio-update()",
-                        "Gujrati Master update ROWID : " + rowId);
+
             case ENGLISH_MASTER:
                 count = db.update(DBHelper.KB_ENGLISH_MASTER_TABLE_NAME, values, selection,
                         selectionArgs);
@@ -214,8 +346,6 @@ public class KBContentProvider extends ContentProvider {
             case ENGLISH_SUGGEST:
                 count = db.update(DBHelper.KB_ENGLISH_SUGGEST_TABLE_NAME, values, selection,
                         selectionArgs);
-                Log.w("KBJIO-Roster-update()",
-                        "Gujrati Roster update ROWID : " + count);
                 break;
 
             default:

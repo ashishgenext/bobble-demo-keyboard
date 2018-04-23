@@ -3,6 +3,10 @@ package com.demo.bobble.keyboard.database;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
+
+//Dataprovider class to define the structure of tables for contentprovider
+
+
 public class DataProvider {
 
     public static final String AUTHORITY = KBContentProvider.class.getName();
@@ -10,9 +14,7 @@ public class DataProvider {
     private DataProvider() {
     }
 
-    public static final Uri CUSTOMQUERY = Uri.parse("content://" + AUTHORITY
-            + "/customquery");
-
+    // Master table which will act as a dictionary , all the word counts will be updated in this table
     public static final class EnglishMaster implements BaseColumns {
 
         private EnglishMaster() {
@@ -28,6 +30,7 @@ public class DataProvider {
         public static final String OTHER = "other";
     }
 
+    // Suggestion table : tracks the words typed by the user
     public static final class EnglishSuggest implements BaseColumns {
         private EnglishSuggest() {
         }

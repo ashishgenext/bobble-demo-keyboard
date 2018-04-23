@@ -6,6 +6,7 @@ import android.database.Cursor;
 
 import com.demo.bobble.keyboard.utility.CommonUtils;
 
+//Database access object
 
 public class KeywordsUtil {
 

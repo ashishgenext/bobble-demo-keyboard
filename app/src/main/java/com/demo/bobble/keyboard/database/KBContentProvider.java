@@ -28,6 +28,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 
+//Content provider class database
+
 public class KBContentProvider extends ContentProvider {
 
     private static SQLiteOpenHelper mOpenHelper;

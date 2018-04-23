@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+// Service : download the initial text file
+
 public class DownloadService extends IntentService {
     public static final int UPDATE_PROGRESS = 8344;
 

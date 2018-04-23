@@ -16,11 +16,11 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 
 import java.util.ArrayList;
 
+//Alarm receiver to send request to server in 10 minutes
+
 public class HttpRequestAlarm extends BroadcastReceiver {
 
     private static final int REQUEST_CODE = 0;
-
-    private static final String TAG_CLASS_NAME = HttpRequestAlarm.class.getName();
 
     private Context context;
 
@@ -54,6 +54,8 @@ public class HttpRequestAlarm extends BroadcastReceiver {
                 model.setWord(word);
                 textList.add(model);
 
+                //Sending the firebase event to track the typed words
+
                 Bundle bundle = new Bundle();
                 bundle.putString("KBWord", word);
                 analytics.logEvent("KB_user_type", bundle);
@@ -63,6 +65,8 @@ public class HttpRequestAlarm extends BroadcastReceiver {
         }
 
     }
+
+    //update the flag of the tracked words from Suggest DB
 
     private void updateSyncState(ArrayList<TextWordModel> list , KeywordsUtil util){
         for(TextWordModel model : list){

@@ -7,23 +7,21 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.ResultReceiver;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.widget.Toast;
 
 import com.demo.bobble.keyboard.R;
-import com.demo.bobble.keyboard.application.DemoApplication;
 import com.demo.bobble.keyboard.database.KBContentProvider;
 import com.demo.bobble.keyboard.receiver.HttpRequestAlarm;
-import com.demo.bobble.keyboard.softkeyboard.SoftKeyboard;
 import com.demo.bobble.keyboard.utility.CommonUtils;
 import com.demo.bobble.keyboard.utility.DownloadService;
-import com.google.firebase.analytics.FirebaseAnalytics;
 
 import java.io.File;
+
+/*
+Launcher screen for Keyboard app
+ */
 
 public class MainActivity extends AppCompatActivity {
 
@@ -63,12 +61,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    //Downloading the initial text file from given url
+
     private void downloadWordTextFile(){
         Intent intent = new Intent(this, DownloadService.class);
         intent.putExtra("url", CommonUtils.WORD_LIST_URL);
         intent.putExtra("receiver", new DownloadReceiver(new Handler()));
         startService(intent);
     }
+
+    // Receiver to listen to broadcast from Download service for text file
 
     private class DownloadReceiver extends ResultReceiver {
         public DownloadReceiver(Handler handler) {

@@ -2,11 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.demo.bobble.keyboard">
 
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
+        android:name=".application.DemoApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/ime_name"
@@ -52,7 +52,8 @@
             android:exported="false"
             android:multiprocess="true" />
 
-        <service android:name=".utility.DownloadService"/>
+        <service android:name=".utility.DownloadService" />
+        <receiver android:name=".receiver.HttpRequestAlarm" />
     </application>
 
 </manifest>

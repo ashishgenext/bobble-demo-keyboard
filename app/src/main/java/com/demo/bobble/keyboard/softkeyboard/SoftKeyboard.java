@@ -19,9 +19,11 @@ import android.database.Cursor;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.text.InputType;
 import android.text.method.MetaKeyKeyListener;
+import android.util.Log;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.View;
@@ -32,9 +34,11 @@ import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 import android.view.inputmethod.InputMethodSubtype;
 
+import com.demo.bobble.keyboard.Model.TextWordModel;
 import com.demo.bobble.keyboard.R;
 import com.demo.bobble.keyboard.database.DataProvider;
 import com.demo.bobble.keyboard.database.KeywordsUtil;
+import com.google.firebase.analytics.FirebaseAnalytics;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,6 +89,9 @@ public class SoftKeyboard extends InputMethodService
     private ArrayList<String> mSuggestList = new ArrayList<>();
     private ArrayList<String> mCompletionSuggestList = new ArrayList<>();
     boolean isCompletionList = false;
+    private FirebaseAnalytics mFirebaseAnalytics;
+    private ArrayList<String> wordCountList = new ArrayList<>();
+
     
     /**
      * Main initialization of the input method component.  Be sure to call
@@ -95,6 +102,8 @@ public class SoftKeyboard extends InputMethodService
         mInputMethodManager = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
         mKeyWordsUtil = new KeywordsUtil(SoftKeyboard.this);
         mWordSeparators = getResources().getString(R.string.word_separators);
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(this);
+
     }
     
     /**
@@ -492,11 +501,44 @@ public class SoftKeyboard extends InputMethodService
      * Helper function to commit any text being composed in to the editor.
      */
     private void commitTyped(InputConnection inputConnection) {
+        if(wordCountList.size() == 5){
+            sendTypedToServer();
+            wordCountList.clear();
+        }
         if (mComposing.length() > 0) {
+            wordCountList.add(mComposing.toString());
             inputConnection.commitText(mComposing, mComposing.length());
             mComposing.setLength(0);
             updateCandidates();
         }
+    }
+
+    private void sendTypedToServer(){
+        Cursor cursor = mKeyWordsUtil.getUnsyncedWords();
+        ArrayList<TextWordModel> textList = new ArrayList<>();
+        if(cursor != null && cursor.moveToFirst()) {
+            while (cursor.moveToNext()) {
+                TextWordModel model = new TextWordModel();
+
+                Long id = cursor.getLong(cursor
+                        .getColumnIndex(DataProvider.EnglishSuggest._ID));
+                String word = cursor.getString(cursor
+                        .getColumnIndex(DataProvider.EnglishSuggest.KEYWORD));
+
+                model.setId(id);
+                model.setWord(word);
+                textList.add(model);
+
+                Bundle bundle = new Bundle();
+                bundle.putString("KBWord", word);
+                mFirebaseAnalytics.logEvent("KB_user_type", bundle);
+                Log.d("SoftKeyword", "SoftKeyword msg : "+word);
+            }
+            for(TextWordModel model : textList){
+                mKeyWordsUtil.updateSyncState(model.getId());
+            }
+        }
+
     }
 
     /**
@@ -560,7 +602,7 @@ public class SoftKeyboard extends InputMethodService
         if (isWordSeparator(primaryCode)) {
             // Handle separator
             if (mComposing.length() > 0) {
-                mKeyWordsUtil.insertOrUpdateKeywordsInDB(mComposing.toString());
+                mKeyWordsUtil.insertOrUpdateKeywordsInMasterDb(mComposing.toString());
                 commitTyped(getCurrentInputConnection());
 
                 getCompletionSuggestMainList(true);
@@ -753,24 +795,30 @@ public class SoftKeyboard extends InputMethodService
             if(mSuggestList != null){
                 mComposing.replace(0,mComposing.length(),mSuggestList.get(index)+" ");
             }
-            mKeyWordsUtil.insertOrUpdateKeywordsInDB(mSuggestList.get(index));
+            mKeyWordsUtil.insertOrUpdateKeywordsInMasterDb(mSuggestList.get(index));
             commitTyped(getCurrentInputConnection());
-
+            wordMatchAnalytics();
             getCompletionSuggestMainList(false);
             setSuggestions(mCompletionSuggestList,true,true);
         }else if (isCompletionList) {
             if (mCompletionSuggestList != null) {
                 mComposing.replace(0, mComposing.length(), mCompletionSuggestList.get(index) + " ");
 
-                mKeyWordsUtil.insertOrUpdateKeywordsInDB(mSuggestList.get(index));
+                mKeyWordsUtil.insertOrUpdateKeywordsInMasterDb(mCompletionSuggestList.get(index));
                 commitTyped(getCurrentInputConnection());
                 isCompletionList = false;
                 mCompletionSuggestList.clear();
-
+                wordMatchAnalytics();
                 getCompletionSuggestMainList(false);
                 setSuggestions(mCompletionSuggestList,true,true);
             }
         }
+    }
+
+    private void wordMatchAnalytics(){
+        Bundle bundle = new Bundle();
+        bundle.putString("wordMatch","success");
+        mFirebaseAnalytics.logEvent("KBSuggest",bundle);
     }
     
     public void swipeRight() {

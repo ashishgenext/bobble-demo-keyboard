@@ -18,10 +18,13 @@
 */
 -->
 
-<com.demo.bobble.keyboard.softkeyboard.LatinKeyboardView
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/keyboard"
-        android:layout_alignParentBottom="true"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        />
+<com.demo.bobble.keyboard.softkeyboard.LatinKeyboardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/keyboard"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_alignParentBottom="true"
+    android:background="@color/colorPrimaryDark"
+    android:keyBackground="@drawable/key_background"
+    android:popupLayout="@layout/keyboard_popup_layout"
+    android:keyPreviewLayout="@layout/preview"
+    android:keyTextColor="#fff" />

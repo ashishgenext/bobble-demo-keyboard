@@ -5,14 +5,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.ResultReceiver;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 
 public class DownloadService extends IntentService {
     public static final int UPDATE_PROGRESS = 8344;
@@ -25,9 +22,11 @@ public class DownloadService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         String urlToDownload = intent.getStringExtra("url");
         ResultReceiver receiver = (ResultReceiver) intent.getParcelableExtra("receiver");
-        File downloadFile = new File(CommonUtils.folderPath , CommonUtils.TEXT_FILE_NAME);
-        if (downloadFile.exists())
-            downloadFile.delete();
+        File root = new File(CommonUtils.folderPath);
+        if (!root.exists()) {
+            root.mkdirs();
+        }
+        File downloadFile = new File(root, CommonUtils.TEXT_FILE_NAME);
         try {
             downloadFile.createNewFile();
             URL downloadURL = new URL(urlToDownload);

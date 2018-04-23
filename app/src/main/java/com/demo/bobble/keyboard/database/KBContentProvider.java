@@ -6,7 +6,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.UriMatcher;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -19,7 +18,6 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.demo.bobble.keyboard.R;
 import com.demo.bobble.keyboard.utility.CommonUtils;
 
 import java.io.BufferedReader;
@@ -74,8 +72,8 @@ public class KBContentProvider extends ContentProvider {
                 DataProvider.EnglishSuggest.KEYWORD);
         englishSuggestProjectionMap.put(DataProvider.EnglishSuggest.COUNT,
                 DataProvider.EnglishSuggest.COUNT);
-        englishSuggestProjectionMap.put(DataProvider.EnglishSuggest.OTHER,
-                DataProvider.EnglishSuggest.OTHER);
+        englishSuggestProjectionMap.put(DataProvider.EnglishSuggest.SYNC_FLAG,
+                DataProvider.EnglishSuggest.SYNC_FLAG);
     }
 
     private static class DBHelper extends SQLiteOpenHelper {
@@ -118,7 +116,7 @@ public class KBContentProvider extends ContentProvider {
                     + "  INTEGER PRIMARY KEY AUTOINCREMENT,";
             table += DataProvider.EnglishSuggest.KEYWORD + " varchar,";
             table += DataProvider.EnglishSuggest.COUNT + " int,";
-            table += DataProvider.EnglishSuggest.OTHER + " varchar";
+            table += DataProvider.EnglishSuggest.SYNC_FLAG + " int";
             table += " );";
             sqLiteDatabase.execSQL(table);
 

@@ -56,6 +56,47 @@ public class KeywordsUtil {
 
     }
 
+    public void insertOrUpdateKeywordsInMasterDb(String szKeyword) {
+        if (CommonUtils.findStoragePermission(mContext)) {
+
+            //Insert in master DB
+
+            ContentValues values = new ContentValues();
+            values.put(DataProvider.EnglishMaster.KEYWORD, szKeyword);
+            values.put(DataProvider.EnglishMaster.COUNT, 1);
+
+            String selection = DataProvider.EnglishSuggest.KEYWORD + " = ?";
+            String[] selectionArgs = new String[]{szKeyword};
+
+            Cursor cursor = mContext.getContentResolver().query(
+                    DataProvider.EnglishMaster.CONTENT_URI, null, selection,
+                    selectionArgs, null);
+
+            if (cursor == null || !cursor.moveToFirst()) {// insert fresh value into
+                mContext.getContentResolver().insert(
+                        DataProvider.EnglishMaster.CONTENT_URI, values);
+            } else {
+                int nCount = cursor.getInt(cursor
+                        .getColumnIndex(DataProvider.EnglishMaster.COUNT));
+
+                values.put(DataProvider.EnglishMaster.COUNT, nCount + 1);
+                mContext.getContentResolver().update(
+                        DataProvider.EnglishMaster.CONTENT_URI, values,
+                        selection, selectionArgs);
+            }
+
+            // Insert in Suggest DB
+            values.clear();
+            values.put(DataProvider.EnglishSuggest.KEYWORD, szKeyword);
+            values.put(DataProvider.EnglishSuggest.COUNT, 1);
+            values.put(DataProvider.EnglishSuggest.SYNC_FLAG, 0);
+            mContext.getContentResolver().insert(DataProvider.EnglishSuggest.CONTENT_URI, values);
+
+
+        }
+    }
+
+
     public Cursor getMatchingWordsFromMasterDB(String szKeyword) {
         if (CommonUtils.findStoragePermission(mContext)) {
             String selection = DataProvider.EnglishSuggest.KEYWORD + " LIKE ?";
@@ -85,10 +126,10 @@ public class KeywordsUtil {
 
             Cursor cursor = mContext.getContentResolver().query(
                     DataProvider.EnglishSuggest.CONTENT_URI,
-                    null,
+                    new String[]{"Distinct " + DataProvider.EnglishSuggest.KEYWORD},
                     null,
                     selectionArgs,
-                    DataProvider.EnglishMaster.COUNT + " DESC LIMIT "
+                    DataProvider.EnglishMaster._ID + " DESC LIMIT "
                             + CommonUtils.nDbTopSearchLimit);
 
 
@@ -139,7 +180,7 @@ public class KeywordsUtil {
             return true;
     }
 
-    void updateMasterDB(String szKeyword, int count) {
+    public void updateMasterDB(String szKeyword, int count) {
         if (CommonUtils.findStoragePermission(mContext)) {
             String selection = DataProvider.EnglishMaster.KEYWORD + " = ?";
             String[] selectionArgs = new String[]{szKeyword};
@@ -148,6 +189,41 @@ public class KeywordsUtil {
             values.put(DataProvider.EnglishMaster.COUNT, count + 1);
             mContext.getContentResolver().update(
                     DataProvider.EnglishMaster.CONTENT_URI, values,
+                    selection, selectionArgs);
+        }
+    }
+
+    public Cursor getUnsyncedWords() {
+        if (CommonUtils.findStoragePermission(mContext)) {
+            String selection = DataProvider.EnglishSuggest.SYNC_FLAG + " = ?";
+            String[] selectionArgs = new String[]{"0"};
+
+            Cursor cursor = mContext.getContentResolver().query(
+                    DataProvider.EnglishSuggest.CONTENT_URI,
+                    null,
+                    selection,
+                    selectionArgs,
+                    null);
+
+
+            if (cursor != null && !cursor.moveToFirst()) {
+                cursor.close();
+                return null;
+            } else
+                return cursor;
+        }
+        return null;
+    }
+
+    public void updateSyncState(Long id){
+        if (CommonUtils.findStoragePermission(mContext)) {
+            String selection = DataProvider.EnglishSuggest._ID + " = ?";
+            String[] selectionArgs = new String[]{String.valueOf(id)};
+
+            ContentValues values = new ContentValues();
+            values.put(DataProvider.EnglishSuggest.SYNC_FLAG, 1);
+            mContext.getContentResolver().update(
+                    DataProvider.EnglishSuggest.CONTENT_URI, values,
                     selection, selectionArgs);
         }
     }

@@ -10,11 +10,11 @@ import android.support.v4.app.ActivityCompat;
 
 public class CommonUtils {
 
-	public static final int nCountOfValueInRoster = 0;
+	public static final int nCountOfValueInRoster = 1;
 	public static final int nDbSearchLimit = 5;
 	public static final int nDbTopSearchLimit = 5;
 	private static final int REQUEST_CODE = 1;
-	public static final String folderPath = Environment.getExternalStorageDirectory().getPath()+"/demoBobble";
+	public static final String folderPath = Environment.getExternalStorageDirectory().getPath()+"/demoBobble/";
 	public static final String TEXT_FILE_NAME = "word_text_list.txt";
 	public static String WORD_LIST_URL = "https://raw.githubusercontent.com/kunaldawn/test_words/master/10000_words.txt";
 

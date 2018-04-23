@@ -39,6 +39,6 @@ public class DataProvider {
         public static final String ID = "_id";// auto increment
         public static final String KEYWORD = "keyword";
         public static final String COUNT = "count";
-        public static final String OTHER = "other";
+        public static final String SYNC_FLAG = "sync_flag";
     }
 }

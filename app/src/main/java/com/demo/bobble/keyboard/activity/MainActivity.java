@@ -15,35 +15,31 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.demo.bobble.keyboard.R;
+import com.demo.bobble.keyboard.application.DemoApplication;
 import com.demo.bobble.keyboard.database.KBContentProvider;
+import com.demo.bobble.keyboard.receiver.HttpRequestAlarm;
 import com.demo.bobble.keyboard.softkeyboard.SoftKeyboard;
 import com.demo.bobble.keyboard.utility.CommonUtils;
 import com.demo.bobble.keyboard.utility.DownloadService;
+import com.google.firebase.analytics.FirebaseAnalytics;
 
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
-    SoftKeyboard mCustomKeyboard;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
         SharedPreferences pref = getApplicationContext().getSharedPreferences("shared_pref", 0);
         boolean isDataInserted = pref.getBoolean("text_file",false);
 
+        HttpRequestAlarm requestAlarm = new HttpRequestAlarm(this , 600);
+        requestAlarm.start();
 
         if(CommonUtils.getStoragePermission(this) && !isDataInserted){
            // downloadWordTextFile();
@@ -87,8 +83,8 @@ public class MainActivity extends AppCompatActivity {
                 if (progress == 100) {
                     KBContentProvider contentProvider = new KBContentProvider();
                     contentProvider.init();
-                }else {
-                    Toast.makeText(MainActivity.this,"Word Download Failed",Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Word Download Failed", Toast.LENGTH_SHORT).show();
                 }
             }
         }
